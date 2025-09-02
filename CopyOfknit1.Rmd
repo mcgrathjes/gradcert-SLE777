@@ -1,0 +1,24 @@
+---
+title: "Week_8_Prac"
+author: "mcgrathjes"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, mychunk1}
+
+summary(cars)
+
+plot(mtcars$`wt`,mtcars$`mpg`,xlab="weight",ylab="mpg",main="mtcars")
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
