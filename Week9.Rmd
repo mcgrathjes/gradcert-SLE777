@@ -1,0 +1,148 @@
+---
+title: "Week_9"
+author: "mcgrathjes"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Week 9 Practical
+
+
+```{r loading packages}
+suppressPackageStartupMessages({
+  library("seqinr") # is a package designed to process and analyse sequence data.
+  library("R.utils") # general utilities like zip and unzip
+})
+```
+
+## Loading sequence data
+
+We will be downloading E. coli genomic sequence data from Ensembl. Ensembl is one of the biggest databases of genomic data. There are many E. coli strains available in Ensembl, but we will focus today on “Escherichia coli str. K-12 substr. MG1655 str. K12 (GCA_000005845)”. 
+
+```{r Downloading E. coli Genome}
+library("R.utils")
+
+URL="http://ftp.ensemblgenomes.org/pub/bacteria/release-53/fasta/bacteria_0_collection/escherichia_coli_str_k_12_substr_mg1655_gca_000005845/cds/Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa.gz"
+download.file(URL,destfile="ecoli_cds.fa.gz")
+#gunzip("ecoli_cds.fa.gz")
+list.files()
+
+```
+
+## Load seqinr library
+Load the seqinr library: This library provides tools for biological sequence retrieval and analysis.
+
+```{r load seqinr library}
+library("seqinr")
+```
+
+## Reading the fasta file
+The code below reads the uncompressed FASTA file ecoli_cds.fa containing Escherichia coli coding sequences into R using the read.fasta function from the seqinr package. The str(head(cds)) function then provides a structured summary of the first few sequences, giving an overview of the data's structure and content.
+
+```{r}
+cds <- seqinr::read.fasta("ecoli_cds.fa")
+str(head(cds))
+```
+
+# Basic Sequence Analysis
+Now we can figure out the number of coding sequences.
+
+```{r}
+length(cds)
+```
+The summary(cds) function generates a detailed summary of the sequences, including their lengths, classes, and modes, while head limits the output to the initial entries.
+```{r}
+head(summary(cds))
+```
+Now let's determine the total length of our sequence. The code below extracts the lengths of genes from the cds object by converting the first column of the summary to numeric values. It then calculates the total length of all genes by summing these values.
+```{r}
+len <- as.numeric(summary(cds)[,1])
+
+sum(len)
+```
+Average
+```{r}
+mean(len)
+```
+Median
+```{r}
+median(len)
+```
+We can look at the distribution of coding sequence length with different types of plots.
+```{r}
+hist(len,xlab="sequence length (bp)",ylab="frequency",main="histogram of coding sequence length")
+```
+Box plot view
+```{r}
+boxplot(len,ylab="sequence length (bp)")
+```
+
+# Sequence composition
+Composition of DNA sequences.
+
+First with one sequence, then with the whole set of coding sequences.
+
+use ?GC ?count and ?summary to see the documentation for those seqinr commands.
+
+cds is a list containing multiple sequences. To access a specific element within a list, such as the first sequence, we use double square brackets ([[ ]]). This syntax retrieves the actual sequence object from the list. For example, cds[[1]] extracts the first sequence from the cds list. We can then pass this to the GC function to compute its GC content.
+
+```{r}
+GC(cds[[1]])
+```
+Let's count the number of each nucleotide present in this gene.
+```{r}
+count(cds[[1]],1)
+```
+We can also calculate the occurrence of two-nucleotide combinations in our first gene.
+```{r}
+count(cds[[1]],2)
+```
+We can also calculate the occurrence of two-nucleotide combinations in our first gene.
+```{r}
+count(cds[[1]],3)
+```
+If you want to count the total length or compute the GC content of a specific number of genes from a list, you will need to unlist them first. For instance, length(unlist(cds[1:3])) extracts the first three sequences from the cds list, converts them into a single character vector using unlist, and then calculates the total length of this combined vector.
+```{r}
+length(unlist(cds[1:3]))
+```
+And if you want to measure the GC content of these three genes you wrap it with GC function instead of length
+```{r}
+GC(unlist(cds[1:3]))
+```
+Unlist everything
+```{r}
+length(unlist(cds))
+GC(unlist(cds))
+```
+
+DNA composition of whole genome
+```{r}
+dna <- unlist(cds)
+dna_composition <- count(dna,1)
+barplot(dna_composition,xlab="nucleotides",ylab="frequency", main="E coli CDS composition")
+```
+
+Relative frequencies of each nucleotide
+```{r}
+dna_composition/sum(dna_composition)
+```
+nucleotide frequency plot
+```{r}
+barplot(dna_composition,xlab="nucleotides",ylab="proportion", main="E coli CDS composition")
+
+grid()
+```
+## Translation
+```{r}
+translate(cds[[1]])
+```
+Translating the whole genome
+```{r}
+prot <- lapply(cds, translate)
+```
+
+
